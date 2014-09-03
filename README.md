@@ -21,9 +21,16 @@ jar {
     manifest {
         attributes "Built-By": System.getProperty("user.name")
         attributes "Build-Jdk": System.getProperty("java.version")
-        attributes "Build-Id": System.getenv("BUILD_ID")
-        attributes "Git-Commit": System.getenv("GIT_COMMIT")
-        attributes "Git-Branch": System.getenv("GIT_BRANCH")
+        [
+            "BUILD_ID": "Build-Id",
+            "GIT_COMMIT": "Git-Commit",
+            "GIT_BRANCH": "Git-Branch"
+        ].each { envVar, attrName ->
+            def envVal = System.getenv(envVar)
+            if (envVal) {
+                attributes([(attrName): envVal])
+            }
+        }
     }
 }
 ```
