@@ -35,7 +35,9 @@ public class App extends Application<AppConfiguration> {
 
     @Override
     public void run(AppConfiguration config, Environment environment) {
-        environment.admin().addServlet("buildinfo", new BuildInfoServlet()).addMapping("/buildinfo");
+        environment.admin()
+                .addServlet("buildinfo", new BuildInfoServlet())
+                .addMapping("/buildinfo");
     }
     
 }
