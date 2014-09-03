@@ -6,7 +6,7 @@ assumed that your project uses [Git](http://git-scm.com/) for version control.
 # Usage
 
 First, add a dependency to your `build.gradle`.  Releases are published to
-[Bintray JCenter](https://bintray.com/bintray/jcenter).  See the [changelog](../CHANGES.md) for the latest version.
+[Bintray JCenter](https://bintray.com/bintray/jcenter).  See the [changelog](CHANGES.md) for the latest version.
 
 ```groovy
 dependencies {
@@ -45,11 +45,11 @@ Now you can view the running application's build info at `/buildinfo` on the adm
 
 ```json
 {
-    Built-By: "bamboo",
-    Build-Jdk: "1.8.0_05",
-    Build-Id: "APP-JOB1-1",
-    Git-Commit: "444b000aa3336992f073fe0000e3b22dc222226a",
-    Git-Branch: "master"
+    "Built-By": "bamboo",
+    "Build-Jdk": "1.8.0_05",
+    "Build-Id": "APP-JOB1-1",
+    "Git-Commit": "444b000aa3336992f073fe0000e3b22dc222226a",
+    "Git-Branch": "master"
 }
 ```
 
