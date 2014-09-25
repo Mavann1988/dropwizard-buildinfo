@@ -1,7 +1,6 @@
 # Overview
 
-A library that supports exposure of build info in [Dropwizard](http://dropwizard.io/) applications. Currently, it is
-assumed that your project uses [Git](http://git-scm.com/) for version control. 
+A library that supports exposure of build info in [Dropwizard](http://dropwizard.io/) applications. All main attributes in the Manifest will be present.
 
 # Usage
 
@@ -44,13 +43,13 @@ public class App extends Application<AppConfiguration> {
     public void run(AppConfiguration config, Environment environment) {
         environment.admin()
                 .addServlet("buildinfo", new BuildInfoServlet())
-                .addMapping("/buildinfo");
+                .addMapping("/buildinfo/*");
     }
     
 }
 ```
 
-Now you can view the running application's build info at `/buildinfo` on the admin port:
+Now you can view the running application's build info at `/buildinfo` on the admin port (with Accept header set to "application/json" you get a json response, otherwise you'll get html):
 
 ```json
 {
@@ -60,6 +59,15 @@ Now you can view the running application's build info at `/buildinfo` on the adm
     "Git-Commit": "444b000aa3336992f073fe0000e3b22dc222226a",
     "Git-Branch": "master"
 }
+```
+
+
+Now you can also view a particular property by running `/buildinfo/Built-By` on the admin port:
+
+``` content-type:text/plain
+
+    bamboo
+
 ```
 
 # Development
