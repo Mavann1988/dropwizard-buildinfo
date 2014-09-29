@@ -49,7 +49,7 @@ public class App extends Application<AppConfiguration> {
 }
 ```
 
-Now you can view the running application's build info at `/buildinfo` on the admin port (with Accept header set to "application/json" you get a json response, otherwise you'll get html):
+Now you can view the running application's build info at `/buildinfo` on the admin port (with Accept header containing "text/html" (which all major browsers contain by default) you get a hmtml response, otherwise you'll get json):
 
 ```json
 {
@@ -61,11 +61,33 @@ Now you can view the running application's build info at `/buildinfo` on the adm
 }
 ```
 
+You can prevent manifest attributes from being shown by blacklisting them when you create the servlet. The example below will prevent the 'Built-By' attribute from being shown in the list or individually (explained below):
 
-Now you can also view a particular property by running `/buildinfo/Built-By` on the admin port:
+```java
+public class App extends Application<AppConfiguration> {
 
-``` content-type:text/plain
+    @Override
+    public void run(AppConfiguration config, Environment environment) {
+        List<String> blacklistedManifestAttributes = new ArrayList<String>();
+        blacklistedManifestAttributes.add("Built-By");
 
+        List<String> blacklistedAttributes = new ArrayList<String>();
+        blacklistedAttributes.add("Built-By");
+
+        environment.admin()
+                .addServlet("buildinfo", new BuildInfoServlet(blacklistedAttributes))
+                .addMapping("/buildinfo/*");
+    }
+
+}
+```
+
+
+You can get the value of a particular property by requesting /buildinfo/{property}. For example:
+
+```
+
+    $ curl -X GET http://localhost:8081/buildinfo/Built-By
     bamboo
 
 ```

@@ -26,30 +26,33 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class BuildInfoServlet extends HttpServlet {
 
     final Logger log = LoggerFactory.getLogger(BuildInfoServlet.class);
-    private static final String CONTENT_TYPE_JSON = "application/json";
-    private static final String CONTENT_TYPE_HTML = "text/html";
-    private static final String CONTENT_TYPE_PLAIN = "text/plain";
     private static final String HEADER_ACCEPT = "Accept";
     private static final String ENCODING_UTF8 = "UTF-8";
 
-    private final Properties properties = new Properties();
+    private final Properties manifestAttributes = new Properties();
     private final ObjectWriter objectWriter = new ObjectMapper().writer();
+
+    private final List<String> blackListedManifestAttributes = new ArrayList<String>();
+
+    BuildInfoServlet (){}
+
+    BuildInfoServlet (List<String> blacklistedManifestAttributes){
+        blackListedManifestAttributes.addAll(blacklistedManifestAttributes);
+    }
 
     @Override
     public void init(ServletConfig config) {
-
         //load build information into properties
         try {
             Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
@@ -58,13 +61,16 @@ public class BuildInfoServlet extends HttpServlet {
                     Manifest manifest = new Manifest(resources.nextElement().openStream());
                     Attributes attributes = manifest.getMainAttributes();
                     Iterator iterator = attributes.keySet().iterator();
-                    while (iterator.hasNext()) {
+                    while(iterator.hasNext()){
                         Attributes.Name attrName = (Attributes.Name) iterator.next();
-                        properties.setProperty(attrName.toString(), attributes.getValue(attrName));
+                        if(!blackListedManifestAttributes.contains(attrName.toString())) {
+                            manifestAttributes.setProperty(attrName.toString(), attributes.getValue(attrName));
+                        }
                     }
                 }
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             log.warn("Unable to retrieve build info", e);
         }
     }
@@ -78,42 +84,45 @@ public class BuildInfoServlet extends HttpServlet {
         String requestedKey = getRequestedKey(request);
 
         if (StringUtils.isNotBlank(requestedKey)) {
-            writeKey(requestedKey, response);
-        } else {
-            if (requestedJson(request)) {
-                writeAllJson(response);
-            } else {
+            writeValueForKey(requestedKey, response);
+        }
+        else {
+            if (requestedHtml(request)) {
                 writeAllHtml(response);
+            }
+            else {
+                writeAllJson(response);
             }
         }
     }
 
-    private void writeKey(String requestedKey, HttpServletResponse response) throws IOException {
-        String value = properties.getProperty(requestedKey);
+    private void writeValueForKey(String requestedKey, HttpServletResponse response) throws IOException {
+        String value = manifestAttributes.getProperty(requestedKey);
         if (StringUtils.isNotBlank(value)) {
-            response.setContentType(CONTENT_TYPE_PLAIN);
+            response.setContentType(MediaType.TEXT_PLAIN);
             PrintWriter writer = response.getWriter();
             writer.print(value);
-        } else {
+        }
+        else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
     private void writeAllJson(HttpServletResponse response) throws IOException {
-        response.setContentType(CONTENT_TYPE_JSON);
-        objectWriter.writeValue(response.getWriter(), properties);
+        response.setContentType(MediaType.APPLICATION_JSON);
+        objectWriter.writeValue(response.getWriter(), manifestAttributes);
     }
 
     private void writeAllHtml(HttpServletResponse response) throws IOException {
-        response.setContentType(CONTENT_TYPE_HTML);
+        response.setContentType(MediaType.TEXT_HTML);
         PrintWriter writer = response.getWriter();
 
         writer.println("<html>");
         writer.println("  <body>");
         writer.println("    <h1>Info</h1>");
         writer.println("    <ul>");
-        for (String key : properties.stringPropertyNames()) {
-            writer.println("      <li>" + key + ": " + properties.get(key) + "</li>");
+        for(String key : manifestAttributes.stringPropertyNames()){
+            writer.println("      <li>" + key + ": " + manifestAttributes.get(key) + "</li>");
         }
         writer.println("    </ul>");
         writer.println("  </body>");
@@ -121,10 +130,10 @@ public class BuildInfoServlet extends HttpServlet {
     }
 
     private static String getRequestedKey(HttpServletRequest request) {
-        return StringUtils.isNotBlank(request.getPathInfo()) && request.getPathInfo().length() > 1 ? request.getPathInfo().substring(1) : null;
+        return StringUtils.substring(request.getPathInfo(), 1);
     }
 
-    private static boolean requestedJson(HttpServletRequest req) {
-        return CONTENT_TYPE_JSON.equalsIgnoreCase(req.getHeader(HEADER_ACCEPT));
+    private static boolean requestedHtml(HttpServletRequest req) {
+        return StringUtils.isNotBlank(req.getHeader(HEADER_ACCEPT)) ? req.getHeader(HEADER_ACCEPT).contains(MediaType.TEXT_HTML) : false;
     }
 }
