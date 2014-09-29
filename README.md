@@ -68,9 +68,6 @@ public class App extends Application<AppConfiguration> {
 
     @Override
     public void run(AppConfiguration config, Environment environment) {
-        List<String> blacklistedManifestAttributes = new ArrayList<String>();
-        blacklistedManifestAttributes.add("Built-By");
-
         List<String> blacklistedAttributes = new ArrayList<String>();
         blacklistedAttributes.add("Built-By");
 

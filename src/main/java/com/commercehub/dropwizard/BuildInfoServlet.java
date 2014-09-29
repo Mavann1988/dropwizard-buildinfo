@@ -26,10 +26,12 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -37,8 +39,6 @@ import java.util.jar.Manifest;
 public class BuildInfoServlet extends HttpServlet {
 
     final Logger log = LoggerFactory.getLogger(BuildInfoServlet.class);
-    private static final String HEADER_ACCEPT = "Accept";
-    private static final String ENCODING_UTF8 = "UTF-8";
 
     private final Properties manifestAttributes = new Properties();
     private final ObjectWriter objectWriter = new ObjectMapper().writer();
@@ -77,7 +77,7 @@ public class BuildInfoServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setCharacterEncoding(ENCODING_UTF8);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setHeader("Cache-Control", "must-revalidate,no-cache,no-store");
         response.setStatus(HttpServletResponse.SC_OK);
 
@@ -134,6 +134,6 @@ public class BuildInfoServlet extends HttpServlet {
     }
 
     private static boolean requestedHtml(HttpServletRequest req) {
-        return StringUtils.isNotBlank(req.getHeader(HEADER_ACCEPT)) ? req.getHeader(HEADER_ACCEPT).contains(MediaType.TEXT_HTML) : false;
+        return StringUtils.isNotBlank(req.getHeader(HttpHeaders.ACCEPT)) ? req.getHeader(HttpHeaders.ACCEPT).contains(MediaType.TEXT_HTML) : false;
     }
 }
